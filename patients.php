@@ -29,31 +29,46 @@ function is_get_all($path_info) {
 function search($term) {
     $conn = get_conn_or_die();
 
-    $stmt = $conn->prepare('SELECT * FROM `patient` WHERE `id` LIKE ? OR `name` LIKE ? OR `address` LIKE ? OR `city` LIKE ? OR `description` LIKE ? OR `disease` LIKE ?');
+    $stmt = $conn->prepare('SELECT `id` FROM `patient` WHERE `id` LIKE ? OR `name` LIKE ? OR `address` LIKE ? OR `city` LIKE ? OR `description` LIKE ? OR `disease` LIKE ?');
     $stmt->bind_param('ssssss', $term, $term, $term, $term, $term, $term);
 
-    execute_statement_or_die($stmt);
-
-    $stmt->bind_result($id, $name, $address, $city, $description, $disease, $last_updated);
-
-    $response = [];
-
-    while ($stmt->fetch()) {
-        array_push($response, create_patient($id, $name, $address, $city, $description, $disease, $last_updated));
-    }
+    $result = get_result_or_die($stmt);
 
     $stmt->close();
     $conn->close();
 
-    respond_ok(json_encode($response));
+    respond_ok(json_encode($result));
 }
 
 function get($id) {
-    echo 'Getting...';
+    $conn = get_conn_or_die();
+
+    $stmt = $conn->prepare('SELECT * FROM `patient` WHERE `id`=?');
+    $stmt->bind_param('s', $id);
+
+    $result = get_result_or_die($stmt);
+
+    $stmt->close();
+    $conn->close();
+
+    if (count($result) == 0) {
+        respond_not_found('');
+    } else {
+        respond_ok(json_encode($result));
+    }
 }
 
 function get_all() {
-    echo 'Getting all...';
+    $conn = get_conn_or_die();
+
+    $stmt = $conn->prepare('SELECT * FROM `patient`');
+
+    $result = get_result_or_die($stmt);
+
+    $stmt->close();
+    $conn->close();
+
+    respond_ok(json_encode($result));
 }
 
 function create_patient($id, $name, $address, $city, $description, $disease, $last_updated) {
@@ -67,4 +82,18 @@ function create_patient($id, $name, $address, $city, $description, $disease, $la
     $patient->last_updated = $last_updated;
 
     return $patient;
+}
+
+function get_result_or_die($stmt) {
+    execute_statement_or_die($stmt);
+
+    $stmt->bind_result($id, $name, $address, $city, $description, $disease, $last_updated);
+
+    $result = [];
+
+    while ($stmt->fetch()) {
+        array_push($result, create_patient($id, $name, $address, $city, $description, $disease, $last_updated));
+    }
+
+    return $result;
 }

@@ -11,6 +11,10 @@ function respond_bad_request($data) {
     respond(400, $data);
 }
 
+function respond_not_found($data) {
+    respond(404, $data);
+}
+
 function respond_internal_server_error($data) {
     respond(500, $data);
 }

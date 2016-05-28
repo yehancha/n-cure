@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: May 27, 2016 at 10:46 PM
+-- Generation Time: May 28, 2016 at 01:01 PM
 -- Server version: 5.6.16-log
 -- PHP Version: 5.5.11
 
@@ -72,11 +72,11 @@ CREATE TABLE IF NOT EXISTS `photo` (
 --
 
 CREATE TABLE IF NOT EXISTS `user` (
-  `id` int(4) NOT NULL,
+  `id` int(4) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `last_logged_in` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
 --
 -- Constraints for dumped tables
@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `user` (
 -- Constraints for table `appointment`
 --
 ALTER TABLE `appointment`
-  ADD CONSTRAINT `appointment_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `appointment_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `photo`

@@ -1,6 +1,5 @@
 <?php
-require_once 'database.php';
-require_once 'method_handler.php';
+require_once('common_requires.php');
 
 function on_get($path_info) {
     $user_id = 0;
@@ -15,12 +14,11 @@ function on_get($path_info) {
 function return_appointments($user_id) {
     $conn = get_mysqli_conn();
     if ($conn->connect_error) {
-        echo $conn->connection_error;
-        return;
+        respond_internal_server_error($conn->connection_error);
     }
 
     if ($user_id != 0) {
-        $stmt = $conn->prepare("SELECT * FROM `appointment` WHERE `user_id`=?");
+        $stmt = $conn->prepare('SELECT * FROM `appointment` WHERE `user_id`=?');
         $stmt->bind_param('s', $user_id);
     } else {
         $stmt = $conn->prepare('SELECT * FROM `appointment`');
@@ -41,6 +39,45 @@ function return_appointments($user_id) {
         array_push($response, $appointment);
     }
 
-    echo json_encode($response);
+    $stmt->close();
+    $conn->close();
+
+    respond_ok(json_encode($response));
+}
+
+function on_post($path_info) {
+    if (count($path_info) != 3 || $path_info[1] != 'user' || $path_info[2] == '') {
+        respond_bad_request('Missing params');
+    }
+
+    $user_id = $path_info[2];
+    $time = $_POST['time'];
+    $description = $_POST['description'];
+
+    if (!isset($time) || !isset($description)) {
+        respond_bad_request('Missing params');
+    }
+
+    $conn = get_mysqli_conn();
+    if ($conn->connect_error) {
+        respond_internal_server_error($conn->connection_error);
+    }
+
+    $stmt = $conn->prepare('INSERT INTO `appointment` (user_id, time, description) VALUES (?, ?, ?)');
+    $stmt->bind_param('sss', $user_id, $time, $description);
+
+    $stmt->execute();
+    $error = $stmt->error;
+
+    $stmt->close();
+    $conn->close();
+
+    if ($error) {
+        // let's extract only the message without structural data
+        $message = explode('(', $error)[0];
+        respond_internal_server_error($message);
+    } else {
+        respond_created('');
+    }
 }
 ?>

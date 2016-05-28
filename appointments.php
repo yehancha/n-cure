@@ -76,15 +76,6 @@ function is_valid_user_path($path_info) {
     return count($path_info) == 3 && $path_info[1] == 'user';
 }
 
-function get_conn_or_die() {
-    $conn = get_mysqli_conn();
-    if ($conn->connect_error) {
-        respond_internal_server_error($conn->connection_error);
-    }
-
-    return $conn;
-}
-
 function get_update_statement_or_die($conn, $id, $time, $description) {
     $stmt = $conn->prepare('SELECT 1 FROM `appointment` WHERE `id`=?');
     $stmt->bind_param('s', $id);
@@ -108,17 +99,6 @@ function get_update_statement_or_die($conn, $id, $time, $description) {
     $stmt->bind_param('sss', $time, $description, $id);
 
     return $stmt;
-}
-
-function execute_statement_or_die($stmt) {
-    $stmt->execute();
-    $error = $stmt->error;
-
-    if ($error) {
-        // let's extract only the message without structural data
-        $message = explode('(', $error)[0];
-        respond_internal_server_error($message);
-    }
 }
 
 function create_appointment($id, $user_id, $time, $description) {

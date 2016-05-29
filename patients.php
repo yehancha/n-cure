@@ -13,6 +13,50 @@ function on_get($path_info) {
     }
 }
 
+function on_post($path_info) {
+    $patients = json_decode(file_get_contents('php://input'));
+
+    if (!$patients) {
+        respond_bad_request('Invalid request body');
+    }
+
+    $conn = get_conn_or_die();
+
+    $stmt_insert = $conn->prepare('INSERT INTO `patient`(`name`, `address`, `city`, `description`, `disease`) VALUES (?, ?, ?, ?, ?)');
+    $stmt_update = $conn->prepare('UPDATE `patient` SET `name`=?,`address`=?,`city`=?,`description`=?,`disease`=? WHERE `id`=?');
+
+    $conn->begin_transaction();
+
+    foreach ($patients as $patient) {
+        $updating = isset($patient->id);
+
+        if ($updating) {
+            $stmt_update->bind_param('ssssss', $patient->name, $patient->address, $patient->city, $patient->description, $patient->disease, $patient->id);
+            $error_message = execute_statement($stmt_update);
+        } else {
+            $stmt_insert->bind_param('sssss', $patient->name, $patient->address, $patient->city, $patient->description, $patient->disease);
+            $error_message = execute_statement($stmt_insert);
+        }
+
+        if ($error_message) {
+            $conn->rollback();
+            $stmt_insert->close();
+            $stmt_update->close();
+            $conn->close();
+
+            respond_internal_server_error($error_message);
+        }
+    }
+
+    $conn->commit();
+
+    $stmt_insert->close();
+    $stmt_update->close();
+    $conn->close();
+
+    respond_ok('');
+}
+
 function is_search($path_info) {
     return count($path_info) == 3 && $path_info[1] == 'search';
 }

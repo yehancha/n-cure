@@ -13,13 +13,19 @@ function get_conn_or_die() {
 }
 
 function execute_statement_or_die($stmt) {
+    $error_message = execute_statement($stmt);
+
+    if ($error_message) {
+        respond_internal_server_error($error_message);
+    }
+}
+
+function execute_statement($stmt) {
     $stmt->execute();
     $error = $stmt->error;
 
-    if ($error) {
-        // let's extract only the message without structural data
-        $message = explode('(', $error)[0];
-        respond_internal_server_error($message);
-    }
+    // let's extract only the message without structural data, if there is an error
+    // otherwise a simple null
+    return $error ? explode('(', $error)[0] : null;
 }
 ?>

@@ -11,6 +11,10 @@ function respond_bad_request($data) {
     respond(400, $data);
 }
 
+function respond_unauthorized($data) {
+    respond(401, $data);
+}
+
 function respond_not_found($data) {
     respond(404, $data);
 }

@@ -28,7 +28,7 @@ function on_post($path_info) {
     $conn->begin_transaction();
 
     foreach ($patients as $patient) {
-        $updating = isset($patient->id);
+        $updating = isset($patient->id) && $patient->id != 0;
 
         if ($updating) {
             $stmt_update->bind_param('ssssss', $patient->name, $patient->address, $patient->city, $patient->description, $patient->disease, $patient->id);
@@ -54,7 +54,7 @@ function on_post($path_info) {
     $stmt_update->close();
     $conn->close();
 
-    respond_ok('');
+    respond_ok('[]');
 }
 
 function is_search($path_info) {

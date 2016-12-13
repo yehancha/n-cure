@@ -19,6 +19,14 @@ function respond_not_found($data) {
     respond(404, $data);
 }
 
+function respond_conflict($data) {
+    respond(409, $data);
+}
+
+function respond_unsupported_media_type($data) {
+    respond(415, $data);
+}
+
 function respond_internal_server_error($data) {
     respond(500, $data);
 }
